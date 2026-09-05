@@ -16,6 +16,7 @@ Checks (see docs/SKILL_AUTHORING.md and docs/ARCHITECTURE.md §12):
   * templates/: first line opens an HTML comment carrying Purpose/Producer/Consumers/Update when/Size.
   * references/ (root and skill-local): header block present; literal token UNVERIFIED absent.
   * workflows/: every step names a known skill.
+  * Handoff prose: every skill named in a Handoff section is a declared registry handoff.
 Exit code 1 on any error (or on warnings with --strict).
 """
 from __future__ import annotations
@@ -464,6 +465,33 @@ def check_registry(reg: Dict[str, Any], skill_dirs: List[Path]) -> None:
             warn(f"{rel(tpl)}: template not referenced by any registry artifact")
 
 
+def check_handoff_prose(reg: Dict[str, Any]) -> None:
+    """Every skill named in a Handoff section must be a declared handoff in the registry.
+
+    Catches drift between what a skill promises to hand off to and the graph the
+    orchestrator actually walks. sdlc-orchestrator is exempt: it hands off to whatever
+    the workflow sequence names next.
+    """
+    skills = {s.get("name"): s for s in reg.get("skills") or []}
+    for name, s in skills.items():
+        if name == "sdlc-orchestrator":
+            continue
+        path = ROOT / "skills" / name / "SKILL.md"
+        if not path.exists():
+            continue
+        body = read(path)
+        m = re.search(r"^## Handoff\n(.*?)^## References", body, re.S | re.M)
+        if not m:
+            err(f"skills/{name}/SKILL.md: no Handoff section")
+            continue
+        mentioned = {tok for tok in re.findall(r"`([a-z][a-z-]+)`", m.group(1)) if tok in skills}
+        declared = set(s.get("handoffs") or [])
+        for extra in sorted(mentioned - declared):
+            err(f"skills/{name}/SKILL.md: Handoff names {extra!r}, not declared in registry handoffs")
+        for missing in sorted(declared - mentioned):
+            warn(f"skills/{name}/SKILL.md: registry declares handoff to {missing!r} but the Handoff section does not name it")
+
+
 def check_workflows(reg: Dict[str, Any]) -> None:
     """Every backticked hyphenated lowercase identifier in a workflow must be a known skill, gate or workflow id."""
     known = {s.get("name") for s in reg.get("skills") or []}
@@ -499,6 +527,7 @@ def main(argv: List[str]) -> int:
 
     if reg:
         check_registry(reg, skill_dirs)
+        check_handoff_prose(reg)
         check_workflows(reg)
 
     for tpl in (ROOT / "templates").glob("*.md"):

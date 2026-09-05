@@ -287,7 +287,8 @@ Each workflow file: purpose; entry conditions; sequence (skill → outputs → g
 
 1. **Structural** (`scripts/validate.py`, Python 3 stdlib only): frontmatter parses; only the six spec fields present; `name` matches directory and regex; description 1–1024 chars (warn > 450); `SKILL.md` ≤ 500 lines (warn > 300); every relative link resolves; required body sections present in order; every skill in `registry.yaml` exists and vice-versa; every template referenced exists; every handoff target is a known skill; every artifact in the registry has a template; no `UNVERIFIED` label inside `references/`.
 2. **Registry** (`skills/registry.yaml`): the single graph the orchestrator and the validator read. Schema in `IMPLEMENTATION_PLAN.md §6`.
-3. **Scenario walkthroughs** (`docs/validation/scenario-*.md`): for A–E, record the request, classified situation, size class, skill sequence actually selected, artifacts produced (as outlines), gates, human stops, gaps found, fixes applied.
+3. **Behavioral evals** (`evals/cases.yaml`, `scripts/run_evals.py`): deterministic half checks case structure, referential integrity against the registry (skills, workflows, situations, `H` ids, fixtures) and context budgets on measured file sets; behavioral half (routing, safety, injection, continuity, human decisions) is run against an agent session and recorded under `evals/results/`. Added in Phase 4.
+4. **Scenario walkthroughs** (`docs/validation/scenario-*.md`): for A–E, record the request, classified situation, size class, skill sequence actually selected, artifacts produced (as outlines), gates, human stops, gaps found, fixes applied.
 4. **Consistency review**: terminology grep against the glossary; duplicate-concept scan across skills and references; contradiction scan (same topic, different instruction).
 5. **Context budget**: total description characters; per-skill line counts; reference sizes — reported by the validator.
 

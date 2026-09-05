@@ -88,7 +88,7 @@ skills:
     inputs: [domain-model?, architecture-overview?, requirements-spec, api-contract?, source-code?, legacy-assessment?]
     outputs: [data-model]
     updates: [project-state, adr]
-    handoffs: [implementation, testing, security]
+    handoffs: [implementation, testing, security, operations]
     gates_after: [design-to-construction]
     references: [templates/data-model.md, references/data-foundations.md, references/cs-foundations.md]
 
@@ -121,7 +121,7 @@ skills:
     inputs: [requirements-spec, architecture-overview?, source-code?, threat-model?, backlog?, data-model?, api-contract?, legacy-assessment?]
     outputs: [test-strategy]
     updates: [requirements-spec, project-state]
-    handoffs: [delivery-pipeline, agile-delivery, implementation]
+    handoffs: [delivery-pipeline, agile-delivery, implementation, security]
     gates_after: [construction-to-release]
     references: [templates/test-strategy.md, references/testing-foundations.md, references/quality-model.md]
 
@@ -132,7 +132,7 @@ skills:
     inputs: [discovery-brief?, requirements-spec?, architecture-overview?, api-contract?, data-model?, risk-register?, source-code?, live-symptoms?, adr?, incident-postmortem?]
     outputs: [threat-model]
     updates: [requirements-spec, risk-register, tech-debt-register, project-state]
-    handoffs: [requirements, architecture, implementation, testing, delivery-pipeline, incident-response, maintenance]
+    handoffs: [requirements, architecture, implementation, testing, delivery-pipeline, incident-response, maintenance, operations]
     gates_after: [construction-to-release]
     references: [templates/threat-model.md, skills/security/references/threat-modeling.md, skills/security/references/secure-coding-checklist.md, references/security-framework-map.md]
 
@@ -143,7 +143,7 @@ skills:
     inputs: [architecture-overview?, adr?, test-strategy?, data-model?, source-code?, threat-model?]
     outputs: [deployment-plan]
     updates: [project-state]
-    handoffs: [operations, implementation]
+    handoffs: [operations, implementation, incident-response]
     gates_after: [release-to-operations]
     references: [templates/deployment-plan.md, references/operations-foundations.md, references/security-framework-map.md, references/stack-adaptation.md]
 
@@ -165,7 +165,7 @@ skills:
     inputs: [live-symptoms, runbook?, deployment-plan?, backlog?]
     outputs: [incident-postmortem]
     updates: [runbook, tech-debt-register, backlog, project-state]
-    handoffs: [maintenance, security, operations]
+    handoffs: [maintenance, security, operations, agile-delivery]
     gates_after: [incident-closure]
     references: [templates/incident-postmortem.md, references/operations-foundations.md, references/agent-working-rules.md]
 
@@ -176,7 +176,7 @@ skills:
     inputs: [source-code, runbook?, incident-postmortem?, audit-findings?, tech-debt-register?, adr?, backlog?, deployment-plan?]
     outputs: [tech-debt-register]
     updates: [backlog, project-state]
-    handoffs: [implementation, testing, delivery-pipeline, security]
+    handoffs: [implementation, testing, delivery-pipeline, security, legacy-modernization]
     gates_after: [story-done]
     references: [templates/tech-debt-register.md, references/stack-adaptation.md, references/engineering-metrics.md, references/agent-working-rules.md]
 

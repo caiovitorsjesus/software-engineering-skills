@@ -72,9 +72,12 @@ Procedure over prose · simplest architecture that meets the quality scenarios (
 ## Validate
 
 ```bash
-python scripts/validate.py          # frontmatter, sections, links, registry consistency
-python scripts/validate.py --strict # warnings fail too
+python scripts/validate.py --strict # frontmatter, sections, links, registry graph, handoff drift
+python scripts/run_evals.py         # behavioral eval fixtures: routing, safety, injection, budgets
+python scripts/run_evals.py --prompts   # print the harness for the agent-run half
 ```
+
+`validate.py` proves the system is structurally coherent; `run_evals.py` guards behaviour — that requests route correctly, destructive ones stop for approval, directives hidden in project files are reported rather than obeyed, and context budgets hold. See [evals/README.md](evals/README.md).
 
 ## Contributing
 

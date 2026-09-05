@@ -64,7 +64,7 @@ Rules: `description` 1–1024 chars, target ≤ 450; put the trigger first; one 
 3. Add the skill to `skills/registry.yaml` (skill entry; artifacts it produces; workflow membership; gates).
 4. Add a template in `templates/` if it produces a new artifact; add the artifact to the registry.
 5. Run `python scripts/validate.py`.
-6. Add or extend a scenario in `docs/validation/` that exercises it.
+6. Add or extend a scenario in `docs/validation/` that exercises it, and a routing case in `evals/cases.yaml` if the skill has its own trigger.
 7. Append a decision to `docs/DECISIONS.md` if the addition changes the taxonomy.
 
 ## 7. Adding a reference
