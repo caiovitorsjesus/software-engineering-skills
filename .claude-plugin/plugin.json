@@ -1,0 +1,10 @@
+{
+  "name": "se",
+  "displayName": "Software Engineering Skills",
+  "version": "0.1.0",
+  "description": "Lifecycle-wide software engineering skills for AI agents: discovery, requirements, agile delivery, domain and architecture design, data and API design, implementation, testing, security, delivery pipeline, operations, incident response, maintenance and legacy modernization, coordinated by an SDLC orchestrator.",
+  "author": { "name": "Caio Vitor Jesus" },
+  "repository": "https://github.com/caiovitorsjesus/software-engineering-skills",
+  "license": "MIT",
+  "keywords": ["software-engineering", "sdlc", "requirements", "architecture", "testing", "security", "devops", "agent-skills"]
+}

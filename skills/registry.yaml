@@ -1,0 +1,315 @@
+# Machine-readable index of the skill system.
+# Read by: skills/sdlc-orchestrator (skill graph) and scripts/validate.py (consistency).
+# Format: YAML subset — block mappings, block sequences, flow sequences [a, b], scalars, quoted strings.
+# Inputs ending in "?" are optional. Inputs must be artifact ids or external_inputs.
+# recurring: true skills are never skipped by output freshness; they run when their entry condition holds.
+# A skill listed in an artifact's `updates` may create it from its template when absent.
+# discovery-brief is required for requirements only in the new-product workflow (see skill Inputs).
+
+version: "0.1.0"
+docs_root: docs/engineering
+
+stages: [discovery, requirements, planning, design, construction, verification, deployment, operations, evolution]
+
+# backlog-item = one ready story taken from the backlog artifact; source-code exists after implementation has run at least once.
+external_inputs: [user-intent, source-code, live-symptoms, backlog-item, change-request, audit-findings]
+
+skills:
+  - name: sdlc-orchestrator
+    layer: orchestration
+    stage: all
+    recurring: true
+    inputs: [user-intent, project-state?, source-code?, risk-register?]
+    outputs: [project-state]
+    updates: []
+    handoffs: [discovery, requirements, agile-delivery, domain-model, architecture, data-design, api-design, implementation, testing, security, delivery-pipeline, operations, incident-response, maintenance, legacy-modernization]
+    gates_after: []
+    references: [skills/sdlc-orchestrator/references/gates.md, skills/sdlc-orchestrator/references/human-decisions.md, skills/sdlc-orchestrator/references/rightsizing.md, skills/sdlc-orchestrator/references/state-file.md, references/stack-adaptation.md, references/lifecycle-map.md]
+
+  - name: discovery
+    layer: discipline
+    stage: discovery
+    recurring: false
+    inputs: [user-intent, source-code?, legacy-assessment?]
+    outputs: [discovery-brief, risk-register]
+    updates: [project-state]
+    handoffs: [requirements, security]
+    gates_after: [discovery-to-requirements]
+    references: [templates/discovery-brief.md, templates/risk-register.md, references/lifecycle-map.md]
+
+  - name: requirements
+    layer: discipline
+    stage: requirements
+    recurring: true
+    inputs: [discovery-brief?, change-request?, legacy-assessment?, source-code?, risk-register?]
+    outputs: [requirements-spec]
+    updates: [project-state, risk-register]
+    handoffs: [agile-delivery, domain-model, architecture, testing, security]
+    gates_after: [requirements-to-design]
+    references: [templates/requirements-spec.md, references/requirements-quality.md, references/quality-model.md, references/security-framework-map.md]
+
+  - name: agile-delivery
+    layer: discipline
+    stage: planning
+    recurring: true
+    inputs: [requirements-spec, discovery-brief?, tech-debt-register?, incident-postmortem?, test-strategy?]
+    outputs: [backlog]
+    updates: [project-state]
+    handoffs: [implementation, requirements, testing]
+    gates_after: [story-done]
+    references: [templates/backlog.md, references/scrum-vocabulary.md, references/engineering-metrics.md]
+
+  - name: domain-model
+    layer: discipline
+    stage: design
+    recurring: false
+    inputs: [requirements-spec, source-code?]
+    outputs: [domain-model]
+    updates: [project-state]
+    handoffs: [architecture, data-design, api-design, implementation]
+    gates_after: []
+    references: [templates/domain-model.md, references/cs-foundations.md]
+
+  - name: architecture
+    layer: discipline
+    stage: design
+    recurring: false
+    inputs: [requirements-spec, domain-model?, legacy-assessment?, risk-register?, source-code?, discovery-brief?, threat-model?, tech-debt-register?]
+    outputs: [architecture-overview, adr]
+    updates: [project-state, risk-register]
+    handoffs: [data-design, api-design, security, delivery-pipeline, implementation]
+    gates_after: [design-to-construction]
+    references: [templates/architecture-overview.md, templates/adr.md, references/architecture-styles.md, references/cs-foundations.md, references/quality-model.md, references/stack-adaptation.md]
+
+  - name: data-design
+    layer: discipline
+    stage: design
+    recurring: false
+    inputs: [domain-model?, architecture-overview?, requirements-spec, api-contract?, source-code?, legacy-assessment?]
+    outputs: [data-model]
+    updates: [project-state, adr]
+    handoffs: [implementation, testing, security]
+    gates_after: [design-to-construction]
+    references: [templates/data-model.md, references/data-foundations.md, references/cs-foundations.md]
+
+  - name: api-design
+    layer: discipline
+    stage: design
+    recurring: false
+    inputs: [domain-model?, architecture-overview?, requirements-spec, source-code?]
+    outputs: [api-contract]
+    updates: [architecture-overview, project-state]
+    handoffs: [implementation, testing, security]
+    gates_after: [design-to-construction]
+    references: [references/security-framework-map.md, references/cs-foundations.md]
+
+  - name: implementation
+    layer: discipline
+    stage: construction
+    recurring: true
+    inputs: [backlog, architecture-overview?, adr?, data-model?, api-contract?, domain-model?, test-strategy?, requirements-spec?, threat-model?, tech-debt-register?]
+    outputs: []
+    updates: [requirements-spec, backlog, project-state]
+    handoffs: [testing, security, delivery-pipeline]
+    gates_after: [story-done]
+    references: [skills/implementation/references/frontend.md, skills/implementation/references/mobile.md, skills/implementation/references/backend.md, skills/implementation/references/async-messaging.md, references/stack-adaptation.md, references/agent-working-rules.md]
+
+  - name: testing
+    layer: discipline
+    stage: verification
+    recurring: true
+    inputs: [requirements-spec, architecture-overview?, source-code?, threat-model?, backlog?, data-model?, api-contract?, legacy-assessment?]
+    outputs: [test-strategy]
+    updates: [requirements-spec, project-state]
+    handoffs: [delivery-pipeline, agile-delivery, implementation]
+    gates_after: [construction-to-release]
+    references: [templates/test-strategy.md, references/testing-foundations.md, references/quality-model.md]
+
+  - name: security
+    layer: discipline
+    stage: transversal
+    recurring: true
+    inputs: [discovery-brief?, requirements-spec?, architecture-overview?, api-contract?, data-model?, risk-register?, source-code?, live-symptoms?, adr?, incident-postmortem?]
+    outputs: [threat-model]
+    updates: [requirements-spec, risk-register, tech-debt-register, project-state]
+    handoffs: [requirements, architecture, implementation, testing, delivery-pipeline, incident-response, maintenance]
+    gates_after: [construction-to-release]
+    references: [templates/threat-model.md, skills/security/references/threat-modeling.md, skills/security/references/secure-coding-checklist.md, references/security-framework-map.md]
+
+  - name: delivery-pipeline
+    layer: discipline
+    stage: deployment
+    recurring: false
+    inputs: [architecture-overview?, adr?, test-strategy?, data-model?, source-code?, threat-model?]
+    outputs: [deployment-plan]
+    updates: [project-state]
+    handoffs: [operations, implementation]
+    gates_after: [release-to-operations]
+    references: [templates/deployment-plan.md, references/operations-foundations.md, references/security-framework-map.md, references/stack-adaptation.md]
+
+  - name: operations
+    layer: discipline
+    stage: operations
+    recurring: true
+    inputs: [deployment-plan?, architecture-overview?, requirements-spec?, threat-model?, data-model?, risk-register?, source-code?, incident-postmortem?]
+    outputs: [runbook]
+    updates: [project-state]
+    handoffs: [incident-response, maintenance, security]
+    gates_after: []
+    references: [templates/runbook.md, references/operations-foundations.md, references/engineering-metrics.md, references/quality-model.md]
+
+  - name: incident-response
+    layer: discipline
+    stage: operations
+    recurring: true
+    inputs: [live-symptoms, runbook?, deployment-plan?, backlog?]
+    outputs: [incident-postmortem]
+    updates: [runbook, tech-debt-register, backlog, project-state]
+    handoffs: [maintenance, security, operations]
+    gates_after: [incident-closure]
+    references: [templates/incident-postmortem.md, references/operations-foundations.md, references/agent-working-rules.md]
+
+  - name: maintenance
+    layer: discipline
+    stage: evolution
+    recurring: true
+    inputs: [source-code, runbook?, incident-postmortem?, audit-findings?, tech-debt-register?, adr?, backlog?, deployment-plan?]
+    outputs: [tech-debt-register]
+    updates: [backlog, project-state]
+    handoffs: [implementation, testing, delivery-pipeline, security]
+    gates_after: [story-done]
+    references: [templates/tech-debt-register.md, references/stack-adaptation.md, references/engineering-metrics.md, references/agent-working-rules.md]
+
+  - name: legacy-modernization
+    layer: discipline
+    stage: evolution
+    recurring: false
+    inputs: [source-code, user-intent, architecture-overview?]
+    outputs: [legacy-assessment, tech-debt-register]
+    updates: [project-state, adr]
+    handoffs: [discovery, requirements, architecture, data-design, testing, maintenance]
+    gates_after: [modernization-plan-approved]
+    references: [templates/legacy-assessment.md, templates/tech-debt-register.md, references/architecture-styles.md, references/testing-foundations.md, references/stack-adaptation.md]
+
+artifacts:
+  - id: project-state
+    template: templates/project-state.md
+    default_path: docs/engineering/STATE.md
+    producers: [sdlc-orchestrator]
+    consumers: [sdlc-orchestrator]
+  - id: discovery-brief
+    template: templates/discovery-brief.md
+    default_path: docs/engineering/discovery-brief.md
+    producers: [discovery]
+    consumers: [requirements, security, agile-delivery, architecture]
+  - id: risk-register
+    template: templates/risk-register.md
+    default_path: docs/engineering/risk-register.md
+    producers: [discovery]
+    consumers: [sdlc-orchestrator, requirements, architecture, security, operations]
+  - id: requirements-spec
+    template: templates/requirements-spec.md
+    default_path: docs/engineering/requirements.md
+    producers: [requirements]
+    consumers: [agile-delivery, domain-model, architecture, testing, security, implementation, operations]
+  - id: backlog
+    template: templates/backlog.md
+    default_path: docs/engineering/backlog.md
+    producers: [agile-delivery]
+    consumers: [implementation, testing, maintenance, incident-response]
+  - id: domain-model
+    template: templates/domain-model.md
+    default_path: docs/engineering/domain-model.md
+    producers: [domain-model]
+    consumers: [architecture, data-design, api-design, implementation]
+  - id: architecture-overview
+    template: templates/architecture-overview.md
+    default_path: docs/engineering/architecture.md
+    producers: [architecture]
+    consumers: [data-design, api-design, security, delivery-pipeline, implementation, testing, operations, legacy-modernization]
+  - id: adr
+    template: templates/adr.md
+    default_path: docs/engineering/adr/NNNN-kebab-title.md
+    producers: [architecture, data-design, legacy-modernization]
+    consumers: [implementation, security, delivery-pipeline, maintenance]
+  - id: data-model
+    template: templates/data-model.md
+    default_path: docs/engineering/data-model.md
+    producers: [data-design]
+    consumers: [implementation, testing, security]
+  - id: api-contract
+    template: none
+    format: "OpenAPI 3.x, GraphQL SDL or AsyncAPI file; location per stack convention"
+    default_path: docs/engineering/api/
+    producers: [api-design]
+    consumers: [implementation, testing, security]
+  - id: threat-model
+    template: templates/threat-model.md
+    default_path: docs/engineering/threat-model.md
+    producers: [security]
+    consumers: [architecture, implementation, testing, delivery-pipeline, operations]
+  - id: test-strategy
+    template: templates/test-strategy.md
+    default_path: docs/engineering/test-strategy.md
+    producers: [testing]
+    consumers: [implementation, delivery-pipeline, agile-delivery]
+  - id: deployment-plan
+    template: templates/deployment-plan.md
+    default_path: docs/engineering/deployment-plan.md
+    producers: [delivery-pipeline]
+    consumers: [operations, incident-response, maintenance]
+  - id: runbook
+    template: templates/runbook.md
+    default_path: docs/engineering/runbook.md
+    producers: [operations]
+    consumers: [incident-response, maintenance]
+  - id: incident-postmortem
+    template: templates/incident-postmortem.md
+    default_path: docs/engineering/incidents/YYYY-MM-DD-slug.md
+    producers: [incident-response]
+    consumers: [maintenance, security, operations]
+  - id: tech-debt-register
+    template: templates/tech-debt-register.md
+    default_path: docs/engineering/tech-debt.md
+    producers: [maintenance, legacy-modernization]
+    consumers: [agile-delivery, architecture, implementation, maintenance]
+  - id: legacy-assessment
+    template: templates/legacy-assessment.md
+    default_path: docs/engineering/legacy-assessment.md
+    producers: [legacy-modernization]
+    consumers: [discovery, requirements, architecture, data-design, testing]
+
+gates:
+  - id: discovery-to-requirements
+    file: skills/sdlc-orchestrator/references/gates.md
+  - id: requirements-to-design
+    file: skills/sdlc-orchestrator/references/gates.md
+  - id: design-to-construction
+    file: skills/sdlc-orchestrator/references/gates.md
+  - id: story-done
+    file: skills/sdlc-orchestrator/references/gates.md
+  - id: construction-to-release
+    file: skills/sdlc-orchestrator/references/gates.md
+  - id: release-to-operations
+    file: skills/sdlc-orchestrator/references/gates.md
+  - id: incident-closure
+    file: skills/sdlc-orchestrator/references/gates.md
+  - id: modernization-plan-approved
+    file: skills/sdlc-orchestrator/references/gates.md
+
+workflows:
+  - id: new-product
+    file: workflows/new-product.md
+    sequence: [discovery, security, requirements, security, agile-delivery, domain-model, architecture, security, data-design, api-design, testing, delivery-pipeline, agile-delivery, implementation, testing, security, operations, delivery-pipeline, operations, maintenance]
+  - id: add-feature
+    file: workflows/add-feature.md
+    sequence: [requirements, agile-delivery, architecture, security, data-design, api-design, implementation, testing, security, delivery-pipeline, operations]
+  - id: production-incident
+    file: workflows/production-incident.md
+    sequence: [incident-response, maintenance, security, operations]
+  - id: legacy-modernization
+    file: workflows/legacy-modernization.md
+    sequence: [legacy-modernization, discovery, requirements, architecture, security, data-design, testing, legacy-modernization, agile-delivery, implementation, testing, delivery-pipeline, operations, maintenance]
+  - id: hardening
+    file: workflows/hardening.md
+    sequence: [operations, security, architecture, maintenance, agile-delivery, implementation, testing, security, delivery-pipeline, operations]
